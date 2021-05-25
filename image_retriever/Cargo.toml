@@ -1,0 +1,17 @@
+[package]
+name = "image_retriever"
+version = "0.1.0"
+authors = ["nekevss <46825870+nekevss@users.noreply.github.com>"]
+edition = "2018"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies.druid]
+git = "https://github.com/linebender/druid.git"
+features = ["im"]
+
+[dependencies]
+reqwest = { version = "0.11", features = ["blocking"]}
+bytes = "1"
+regex = "1"
+im = "15"
