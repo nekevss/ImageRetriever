@@ -37,9 +37,12 @@ fn parse_requests(requests_string: String) -> Vec<String> {
 
     //check if there is a new line
     if newline_regex.is_match(&requests_string) {
-        let requests_iter: Vec<&str> = newline_regex.split(&requests_string).collect();
-
-        for request in requests_iter.iter() {
+        //let requests_iter: Vec<&str> = newline_regex.split(&requests_string).collect();
+        //requests_iter.iter()
+        for request in newline_regex
+            .split(&requests_string)
+            .filter(|x| !x.is_empty())
+        {
             request_vector.push(String::from(request.clone()));
         }
     } else {
@@ -129,7 +132,7 @@ fn run_image_download(
                     //special handling cause jpg spelling is blah
                     if request.contains(".JPG") {
                         let new_request = request.replace(".JPG", ".jpg");
-                        let file_name = determine_file_name(&new_request, ".jpg");
+                        let file_name = determine_file_name(&new_request, "jpg");
                         handle_image_bytes(data, bytes, &file_name)
                     } else if request.contains(".jpeg") {
                         let new_request = request.replace(".jpeg", ".jpg");
@@ -165,11 +168,24 @@ fn determine_file_name(request_string: &String, suffix: &str) -> String {
     if request_string.contains(suffix) {
         let request_path = Path::new(request_string);
         let name = request_path.file_name().and_then(|n| n.to_str());
-        String::from(name.unwrap_or_default())
+        let cleaned_name = clean_name(name.unwrap_or_default());
+        String::from(cleaned_name)
     } else {
         let request_path = Path::new(request_string);
         let name = request_path.file_name().and_then(|n| n.to_str());
-        format!("{}{}", name.unwrap_or_default(), suffix)
+        let cleaned_name = clean_name(name.unwrap_or_default());
+        format!("{}{}", cleaned_name, suffix)
+    }
+}
+
+fn clean_name(name: &str) -> &str {
+    let query_removal = Regex::new("[?].*$").unwrap();
+    if query_removal.is_match(name) {
+        //splitting until end of string should always return just one value: cleaned_vec[0]
+        let cleaned_vec: Vec<&str> = query_removal.split(name).collect();
+        cleaned_vec[0]
+    } else {
+        name
     }
 }
 
