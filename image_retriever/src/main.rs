@@ -1,5 +1,5 @@
 use druid::commands::{OPEN_FILE, SHOW_OPEN_PANEL};
-use druid::widget::{Align, Button, Flex, Label, List, Padding, Scroll, TextBox};
+use druid::widget::{Align, Button, Flex, Label, List, Padding, Scroll, SizedBox, TextBox};
 use druid::{
     AppDelegate, AppLauncher, Command, Data, DelegateCtx, Env, FileDialogOptions, Handled, Lens,
     Target, WidgetExt, WindowDesc,
@@ -68,14 +68,16 @@ fn main() {
 
 fn build_root() -> impl druid::Widget<RetrieverState> {
     //let's create our top panel, "control panel"
-    let prompt = Label::new("Throw some URLs, and I'll fetch them!");
+    let prompt = Label::new("Select your path, throw me some URLs, and I'll fetch them!");
 
     let select_path = Button::new("Select").on_click(|ctx, _data, _env| {
         let options = FileDialogOptions::new().select_directories();
         ctx.submit_command(SHOW_OPEN_PANEL.with(options.clone()));
     });
 
-    let path_label = Label::new(|data: &RetrieverState, _env: &_| format!("{}", data.export_dir));
+    let path_label = Label::new(|data: &RetrieverState, _env: &_| {
+        format!("Output Directory: {}", data.export_dir)
+    });
 
     let path_selection = Flex::row()
         .with_child(select_path)
@@ -83,28 +85,27 @@ fn build_root() -> impl druid::Widget<RetrieverState> {
         .with_child(path_label);
 
     let panel = Flex::column()
-        .with_child(prompt)
+        .with_child(Align::left(prompt))
         .with_spacer(16.0)
-        .with_child(path_selection);
+        .with_child(Align::left(path_selection));
 
     let input_box = TextBox::multiline()
-        .with_placeholder("URLs go here")
+        .with_placeholder("Throw URLs here! (Note: should be newline delimited)")
         .expand_width()
         .fix_height(224.0)
         .lens(RetrieverState::requests_input);
 
-    let feedback_display = Flex::column()
-        .with_child(
-            Scroll::new(List::new(|| {
-                Align::left(
-                    Flex::row()
-                        .with_child(Label::new(|item: &String, _env: &_| format!("{}", item))),
-                )
-            }))
-            .vertical()
-            .lens(RetrieverState::feedback),
+    let feedback_list = List::new(|| {
+        Align::left(
+            Flex::row().with_child(Label::new(|item: &String, _env: &_| format!("{}", item))),
         )
-        .fix_height(200.0);
+    })
+    .lens(RetrieverState::feedback);
+
+    let feedback_display = SizedBox::new(Scroll::new(feedback_list))
+        .expand_width()
+        .expand_height()
+        .padding(10.0);
 
     let fetch_button =
         Button::new("Throw").on_click(|_ctx, data: &mut RetrieverState, _env| request_runner(data));
@@ -117,7 +118,8 @@ fn build_root() -> impl druid::Widget<RetrieverState> {
     let button_container = Flex::row()
         .with_child(fetch_button)
         .with_spacer(8.0)
-        .with_child(clear_button);
+        .with_child(clear_button)
+        .expand_width();
 
     let layout = Padding::new(
         (16.0, 16.0),
@@ -127,7 +129,7 @@ fn build_root() -> impl druid::Widget<RetrieverState> {
             .with_spacer(32.0)
             .with_child(input_box)
             .with_spacer(32.0)
-            .with_child(feedback_display)
+            .with_flex_child(feedback_display, 1.0)
             .with_spacer(32.0)
             .with_child(Align::right(button_container)),
     );

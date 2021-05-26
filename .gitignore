@@ -1,2 +1,3 @@
 /target
+/image_retriever/target
 Cargo.lock

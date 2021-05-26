@@ -27,7 +27,7 @@ pub fn request_runner(data: &mut RetrieverState) {
             run_request(data, request);
         }
     } else {
-        log_feedback(data, String::from("There was no input provided to fetch"));
+        log_feedback(data, String::from("There was no input provided to fetch\n"));
     }
 }
 
@@ -58,7 +58,7 @@ fn run_request(data: &mut RetrieverState, request_url: &String) {
 
     match request_response {
         Ok(response) => {
-            log_feedback(data, String::from("Response returned successfully!"));
+            log_feedback(data, String::from("--Response returned successfully!\n"));
             log_feedback(data, String::from("Checking response content type..."));
             let headers = response.headers();
             let content_type = headers.get("content-type");
@@ -68,18 +68,18 @@ fn run_request(data: &mut RetrieverState, request_url: &String) {
                     ImageType::Other => log_feedback(
                         data,
                         String::from(
-                            "Invalid or Unsupported HTTP Content Type: Could not process request",
+                            "Invalid or Unsupported HTTP Content Type: Could not process request\n",
                         ),
                     ),
                     _ => {
-                        log_feedback(data, String::from("Content type is supported"));
+                        log_feedback(data, String::from("--Content type is supported!\n"));
                         let download_result =
                             run_image_download(data, image_type, response, request_url);
                         match download_result {
-                            Ok(_x) => log_feedback(data, String::from("Download Complete")),
+                            Ok(_x) => log_feedback(data, String::from("--Download Complete!\n")),
                             Err(err) => log_feedback(
                                 data,
-                                format!("Download aborted! An error occurred: {}", err),
+                                format!("Download aborted! An error occurred: {}\n", err),
                             ),
                         }
                     }
@@ -88,7 +88,7 @@ fn run_request(data: &mut RetrieverState, request_url: &String) {
                 log_feedback(
                     data,
                     String::from(
-                        "Error: response header contained no content type. Could not download.",
+                        "Error: response header contained no content type. Could not download.\n",
                     ),
                 )
             };
@@ -98,7 +98,7 @@ fn run_request(data: &mut RetrieverState, request_url: &String) {
             //So we just have to log the error in our feedback.
             log_feedback(
                 data,
-                format!("Http request failed! Returned an error: {}", err),
+                format!("Http request failed! Returned an error: {}\n", err),
             )
         }
     }
@@ -157,7 +157,7 @@ fn run_image_download(
         Err(err) => {
             log_feedback(
                 data,
-                format!("Error while reading bytes from response body: {}", err),
+                format!("Error while reading bytes from response body: {}\n", err),
             );
             Ok(())
         }
